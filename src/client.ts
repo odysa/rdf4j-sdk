@@ -1,12 +1,12 @@
-import { HttpClient } from "./http-client.ts";
-import type { RepositoryImplConfigBuilder } from "./model.ts";
-import type { SparqlBindings } from "./repository-client.ts";
-import { RepositoryClient } from "./repository-client.ts";
+import { HttpClient } from "./http-client.js";
+import type { RepositoryImplConfigBuilder } from "./model.js";
+import type { SparqlBindings } from "./repository-client.js";
+import { RepositoryClient } from "./repository-client.js";
 import {
 	ContentTypes,
 	type RDF4JConfig,
 	type RepositoryConfig,
-} from "./types.ts";
+} from "./types.js";
 
 /** RDF4J repository information */
 export interface Repository {

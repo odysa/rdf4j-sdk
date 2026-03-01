@@ -1,7 +1,7 @@
-import { serializeStatements } from "./helpers.ts";
-import type { HttpClient } from "./http-client.ts";
-import { IRI, type Quad, type Triple } from "./model.ts";
-import { ContentTypes } from "./types.ts";
+import { serializeStatements } from "./helpers.js";
+import type { HttpClient } from "./http-client.js";
+import { IRI, type Quad, type Triple } from "./model.js";
+import { ContentTypes } from "./types.js";
 
 /** Client for named graph operations */
 export class NamedGraphClient {

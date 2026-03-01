@@ -4,7 +4,7 @@ import {
 	type RDF4JConfig,
 	RDF4JError,
 	type RequestOptions,
-} from "./types.ts";
+} from "./types.js";
 
 /** Low-level HTTP client for making REST API calls */
 export class HttpClient {

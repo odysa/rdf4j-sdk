@@ -1,4 +1,4 @@
-import { Rdf4jError } from "./errors.ts";
+import { Rdf4jError } from "./errors.js";
 
 /** RDF4J client configuration */
 export interface RDF4JConfig {

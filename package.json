@@ -1,8 +1,35 @@
 {
-	"name": "rdf4j",
+	"name": "rdf4j-sdk",
+	"version": "0.1.0",
+	"description": "TypeScript SDK for the RDF4J triplestore REST API",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/odysa/rdf4j-sdk"
+	},
+	"keywords": [
+		"rdf",
+		"rdf4j",
+		"sparql",
+		"triplestore",
+		"linked-data",
+		"semantic-web"
+	],
 	"module": "index.ts",
 	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"types": "./dist/index.d.ts",
+	"files": [
+		"dist"
+	],
 	"scripts": {
+		"build": "rm -rf dist && tsc -p tsconfig.build.json",
+		"prepublishOnly": "bun run build",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",
 		"format": "biome format --write .",

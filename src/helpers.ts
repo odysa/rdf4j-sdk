@@ -1,4 +1,4 @@
-import type { Term } from "./model.ts";
+import type { Term } from "./model.js";
 import {
 	BlankNode,
 	IRI,
@@ -6,8 +6,8 @@ import {
 	type Quad,
 	type Triple,
 	Variable,
-} from "./model.ts";
-import { ContentTypes } from "./types.ts";
+} from "./model.js";
+import { ContentTypes } from "./types.js";
 
 /** Serialize an RDF term to its SPARQL/N-Triples string representation */
 export function serializeTerm(term: Term): string {

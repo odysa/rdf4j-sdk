@@ -1,5 +1,5 @@
-import type { HttpClient } from "./http-client.ts";
-import { ContentTypes } from "./types.ts";
+import type { HttpClient } from "./http-client.js";
+import { ContentTypes } from "./types.js";
 
 /** Client for SPARQL 1.1 Graph Store Protocol operations */
 export class GraphStoreClient {

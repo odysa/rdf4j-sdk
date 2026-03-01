@@ -1,5 +1,5 @@
-import { serializeTerm } from "./helpers.ts";
-import type { Namespace, Term } from "./model.ts";
+import { serializeTerm } from "./helpers.js";
+import type { Namespace, Term } from "./model.js";
 
 // ============================================
 // GraphPattern

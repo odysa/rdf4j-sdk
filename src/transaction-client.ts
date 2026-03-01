@@ -1,13 +1,13 @@
-import { TransactionStateError } from "./errors.ts";
-import { normalizeContext, serializeStatements } from "./helpers.ts";
-import type { HttpClient } from "./http-client.ts";
-import type { Quad, Triple } from "./model.ts";
+import { TransactionStateError } from "./errors.js";
+import { normalizeContext, serializeStatements } from "./helpers.js";
+import type { HttpClient } from "./http-client.js";
+import type { Quad, Triple } from "./model.js";
 import type {
 	QueryOptions,
 	SparqlBindings,
 	StatementOptions,
-} from "./repository-client.ts";
-import { ContentTypes, type TransactionState } from "./types.ts";
+} from "./repository-client.js";
+import { ContentTypes, type TransactionState } from "./types.js";
 
 /** Client for transaction operations */
 export class TransactionClient {

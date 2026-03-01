@@ -1,6 +1,6 @@
 // Main client
-export type { Repository } from "./client.ts";
-export { RDF4JClient } from "./client.ts";
+export type { Repository } from "./client.js";
+export { RDF4JClient } from "./client.js";
 // Error Hierarchy
 export {
 	NamespaceError,
@@ -15,10 +15,10 @@ export {
 	RepositoryUpdateError,
 	TransactionError,
 	TransactionStateError,
-} from "./errors.ts";
+} from "./errors.js";
 // Graph Store client
-export { GraphStoreClient } from "./graph-store-client.ts";
-export type { QueryType } from "./helpers.ts";
+export { GraphStoreClient } from "./graph-store-client.js";
+export type { QueryType } from "./helpers.js";
 // Helpers
 export {
 	blankNode,
@@ -31,9 +31,9 @@ export {
 	serializeStatements,
 	serializeTerm,
 	variable,
-} from "./helpers.ts";
+} from "./helpers.js";
 // HTTP client
-export { HttpClient } from "./http-client.ts";
+export { HttpClient } from "./http-client.js";
 export type {
 	GraphTerm,
 	Predicate,
@@ -42,7 +42,7 @@ export type {
 	SailConfig,
 	Subject,
 	Term,
-} from "./model.ts";
+} from "./model.js";
 
 // RDF Data Model
 export {
@@ -73,9 +73,9 @@ export {
 	Triple,
 	Variable,
 	XSD,
-} from "./model.ts";
+} from "./model.js";
 // Named Graph client
-export { NamedGraphClient } from "./named-graph-client.ts";
+export { NamedGraphClient } from "./named-graph-client.js";
 
 // SPARQL Query Builder
 export {
@@ -88,17 +88,17 @@ export {
 	GraphPattern,
 	SelectQuery,
 	select,
-} from "./query-builder.ts";
+} from "./query-builder.js";
 // Repository client
 export type {
 	QueryOptions,
 	SparqlBindings,
 	SparqlBooleanResult,
 	StatementOptions,
-} from "./repository-client.ts";
-export { RepositoryClient } from "./repository-client.ts";
+} from "./repository-client.js";
+export { RepositoryClient } from "./repository-client.js";
 // Transaction client
-export { TransactionClient } from "./transaction-client.ts";
+export { TransactionClient } from "./transaction-client.js";
 
 // Types
 export type {
@@ -112,5 +112,5 @@ export type {
 	RequestOptions,
 	TransactionAction,
 	TransactionState,
-} from "./types.ts";
-export { ContentTypes, RDF4JError } from "./types.ts";
+} from "./types.js";
+export { ContentTypes, RDF4JError } from "./types.js";

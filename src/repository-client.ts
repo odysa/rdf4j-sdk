@@ -1,14 +1,15 @@
-import { GraphStoreClient } from "./graph-store-client.ts";
+import { readFile } from "node:fs/promises";
+import { GraphStoreClient } from "./graph-store-client.js";
 import {
 	detectRdfFormat,
 	normalizeContext,
 	serializeStatements,
-} from "./helpers.ts";
-import type { HttpClient } from "./http-client.ts";
-import type { Quad, Triple } from "./model.ts";
-import { NamedGraphClient } from "./named-graph-client.ts";
-import { TransactionClient } from "./transaction-client.ts";
-import { ContentTypes, type IsolationLevel } from "./types.ts";
+} from "./helpers.js";
+import type { HttpClient } from "./http-client.js";
+import type { Quad, Triple } from "./model.js";
+import { NamedGraphClient } from "./named-graph-client.js";
+import { TransactionClient } from "./transaction-client.js";
+import { ContentTypes, type IsolationLevel } from "./types.js";
 
 /** SPARQL query result bindings */
 export interface SparqlBindings {
@@ -475,7 +476,7 @@ export class RepositoryClient {
 			);
 		}
 
-		const data = await Bun.file(filePath).text();
+		const data = await readFile(filePath, "utf-8");
 		return this.add(data, {
 			contentType: format,
 			context: options?.context,

@@ -78,8 +78,8 @@ export class TransactionError extends Rdf4jError {}
 /** Invalid transaction state transition */
 export class TransactionStateError extends TransactionError {
 	constructor(
-		expected: import("./types.ts").TransactionState,
-		actual: import("./types.ts").TransactionState,
+		expected: import("./types.js").TransactionState,
+		actual: import("./types.js").TransactionState,
 	) {
 		super(`Invalid transaction state: expected '${expected}', got '${actual}'`);
 	}
