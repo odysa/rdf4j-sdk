@@ -1,5 +1,12 @@
 import { GraphStoreClient } from "./graph-store-client.ts";
+import {
+	detectRdfFormat,
+	normalizeContext,
+	serializeStatements,
+} from "./helpers.ts";
 import type { HttpClient } from "./http-client.ts";
+import type { Quad, Triple } from "./model.ts";
+import { NamedGraphClient } from "./named-graph-client.ts";
 import { TransactionClient } from "./transaction-client.ts";
 import { ContentTypes, type IsolationLevel } from "./types.ts";
 
@@ -65,13 +72,13 @@ export interface StatementOptions {
 
 /** Client for repository-specific operations */
 export class RepositoryClient {
+	private readonly basePath: string;
+
 	constructor(
 		private readonly http: HttpClient,
 		private readonly repositoryId: string,
-	) {}
-
-	private get basePath(): string {
-		return `/repositories/${this.repositoryId}`;
+	) {
+		this.basePath = `/repositories/${repositoryId}`;
 	}
 
 	// ============================================
@@ -307,9 +314,7 @@ export class RepositoryClient {
 				subj: options?.subj,
 				pred: options?.pred,
 				obj: options?.obj,
-				context: Array.isArray(options?.context)
-					? options?.context.join(",")
-					: options?.context,
+				context: normalizeContext(options?.context),
 				infer: options?.infer,
 			},
 		});
@@ -322,9 +327,7 @@ export class RepositoryClient {
 				subj: options?.subj,
 				pred: options?.pred,
 				obj: options?.obj,
-				context: Array.isArray(options?.context)
-					? options?.context.join(",")
-					: options?.context,
+				context: normalizeContext(options?.context),
 			},
 		});
 	}
@@ -334,12 +337,7 @@ export class RepositoryClient {
 		accept?: string;
 		context?: string;
 	}): Promise<string> {
-		return this.http.get<string>(`${this.basePath}/statements`, {
-			accept: options?.accept ?? ContentTypes.TURTLE,
-			params: {
-				context: options?.context,
-			},
-		});
+		return this.getStatements(options);
 	}
 
 	// ============================================
@@ -436,6 +434,65 @@ export class RepositoryClient {
 	}
 
 	// ============================================
+	// Typed Statement Operations
+	// ============================================
+
+	/** Add typed Triple/Quad statements */
+	async addStatements(
+		statements: Iterable<Triple | Quad>,
+		options?: { context?: string; baseURI?: string },
+	): Promise<void> {
+		return this.add(serializeStatements(statements), {
+			contentType: ContentTypes.NQUADS,
+			...options,
+		});
+	}
+
+	/** Replace all statements with typed Triple/Quad statements */
+	async replaceStatements(
+		statements: Iterable<Triple | Quad>,
+		options?: { context?: string; baseURI?: string },
+	): Promise<void> {
+		return this.replace(serializeStatements(statements), {
+			contentType: ContentTypes.NQUADS,
+			...options,
+		});
+	}
+
+	/** Upload an RDF file to the repository */
+	async uploadFile(
+		filePath: string,
+		options?: {
+			rdfFormat?: string;
+			context?: string;
+			baseURI?: string;
+		},
+	): Promise<void> {
+		const format = options?.rdfFormat ?? detectRdfFormat(filePath);
+		if (!format) {
+			throw new Error(
+				`Cannot detect RDF format for file: ${filePath}. Specify rdfFormat explicitly.`,
+			);
+		}
+
+		const data = await Bun.file(filePath).text();
+		return this.add(data, {
+			contentType: format,
+			context: options?.context,
+			baseURI: options?.baseURI,
+		});
+	}
+
+	// ============================================
+	// Named Graph Operations
+	// ============================================
+
+	/** Get a named graph client for typed operations */
+	namedGraph(graphUri: string): NamedGraphClient {
+		return new NamedGraphClient(this.http, this.repositoryId, graphUri);
+	}
+
+	// ============================================
 	// Transaction Operations
 	// ============================================
 
@@ -463,6 +520,27 @@ export class RepositoryClient {
 		}
 
 		return new TransactionClient(this.http, this.repositoryId, txnId);
+	}
+
+	/**
+	 * Execute a function within a transaction (auto-commit/rollback).
+	 * Commits on success, rolls back on error.
+	 */
+	async withTransaction<T>(
+		fn: (txn: TransactionClient) => Promise<T>,
+		isolationLevel?: IsolationLevel,
+	): Promise<T> {
+		const txn = await this.beginTransaction(isolationLevel);
+		try {
+			const result = await fn(txn);
+			await txn.commit();
+			return result;
+		} catch (error) {
+			if (txn.isActive) {
+				await txn.rollback();
+			}
+			throw error;
+		}
 	}
 
 	// ============================================

@@ -1,4 +1,5 @@
 import { HttpClient } from "./http-client.ts";
+import type { RepositoryImplConfigBuilder } from "./model.ts";
 import type { SparqlBindings } from "./repository-client.ts";
 import { RepositoryClient } from "./repository-client.ts";
 import {
@@ -22,11 +23,6 @@ export class RDF4JClient {
 
 	constructor(config: RDF4JConfig) {
 		this.http = new HttpClient(config);
-	}
-
-	/** Get the underlying HTTP client for custom requests */
-	get httpClient(): HttpClient {
-		return this.http;
 	}
 
 	/** Get server protocol version */
@@ -53,15 +49,37 @@ export class RDF4JClient {
 
 	/**
 	 * Create a new repository
-	 * @param config Repository configuration
+	 * @param config Repository configuration (simple or typed builder)
 	 */
-	async createRepository(config: RepositoryConfig): Promise<void> {
-		const configTurtle =
-			config.configTurtle ?? this.generateDefaultConfig(config);
-		await this.http.put<void>(`/repositories/${config.id}`, {
+	async createRepository(
+		config: RepositoryConfig | RepositoryImplConfigBuilder,
+	): Promise<void> {
+		let id: string;
+		let configTurtle: string;
+
+		if ("repoId" in config) {
+			// RepositoryImplConfigBuilder
+			id = config.repoId;
+			configTurtle = config.toTurtle();
+		} else {
+			id = config.id;
+			configTurtle = config.configTurtle ?? this.generateDefaultConfig(config);
+		}
+
+		await this.http.put<void>(`/repositories/${id}`, {
 			body: configTurtle,
 			contentType: ContentTypes.TURTLE,
 		});
+	}
+
+	/** Check if the RDF4J server is reachable */
+	async healthCheck(): Promise<boolean> {
+		try {
+			await this.getProtocol();
+			return true;
+		} catch {
+			return false;
+		}
 	}
 
 	/**

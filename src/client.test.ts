@@ -230,10 +230,3 @@ ex:s ex:p ex:o .`;
 
 	expect(result).toBe(turtle);
 });
-
-test("RDF4JClient exposes httpClient for custom requests", () => {
-	const client = new RDF4JClient({ baseUrl: "http://localhost:8080/rdf4j" });
-
-	expect(client.httpClient).toBeDefined();
-	expect(typeof client.httpClient.get).toBe("function");
-});

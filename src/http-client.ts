@@ -69,75 +69,6 @@ export class HttpClient {
 		};
 	}
 
-	/** Make an HTTP request */
-	async request<T = unknown>(
-		method: HttpMethod,
-		path: string,
-		options: RequestOptions = {},
-	): Promise<T> {
-		const url = this.buildUrl(path, options.params);
-		const { body, contentType } = this.prepareBody(options);
-
-		const headers: Record<string, string> = {
-			...this.defaultHeaders,
-			...options.headers,
-		};
-
-		if (contentType) {
-			headers["Content-Type"] = contentType;
-		}
-
-		if (options.accept) {
-			headers.Accept = options.accept;
-		}
-
-		const controller = new AbortController();
-		const timeoutId = setTimeout(
-			() => controller.abort(),
-			options.timeout ?? this.timeout,
-		);
-
-		try {
-			const response = await fetch(url, {
-				method,
-				headers,
-				body,
-				signal: controller.signal,
-			});
-
-			if (!response.ok) {
-				let errorResponse: unknown;
-				try {
-					const text = await response.text();
-					errorResponse = text ? JSON.parse(text) : undefined;
-				} catch {
-					// Response body is not JSON
-				}
-
-				throw new RDF4JError(
-					`HTTP ${response.status}: ${response.statusText}`,
-					response.status,
-					response.statusText,
-					errorResponse as Record<string, unknown>,
-				);
-			}
-
-			const responseContentType = response.headers.get("content-type") ?? "";
-
-			if (response.status === 204 || !responseContentType) {
-				return undefined as T;
-			}
-
-			if (responseContentType.includes("application/json")) {
-				return (await response.json()) as T;
-			}
-
-			return (await response.text()) as T;
-		} finally {
-			clearTimeout(timeoutId);
-		}
-	}
-
 	/** Make an HTTP request and return response with headers */
 	async requestWithHeaders(
 		method: HttpMethod,
@@ -210,6 +141,16 @@ export class HttpClient {
 		} finally {
 			clearTimeout(timeoutId);
 		}
+	}
+
+	/** Make an HTTP request */
+	async request<T = unknown>(
+		method: HttpMethod,
+		path: string,
+		options: RequestOptions = {},
+	): Promise<T> {
+		const { body } = await this.requestWithHeaders(method, path, options);
+		return body as T;
 	}
 
 	/** GET request */

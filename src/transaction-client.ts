@@ -1,23 +1,26 @@
+import { TransactionStateError } from "./errors.ts";
+import { normalizeContext, serializeStatements } from "./helpers.ts";
 import type { HttpClient } from "./http-client.ts";
+import type { Quad, Triple } from "./model.ts";
 import type {
 	QueryOptions,
 	SparqlBindings,
 	StatementOptions,
 } from "./repository-client.ts";
-import { ContentTypes } from "./types.ts";
+import { ContentTypes, type TransactionState } from "./types.ts";
 
 /** Client for transaction operations */
 export class TransactionClient {
-	private active = true;
+	private state: TransactionState = "ACTIVE";
+
+	private readonly basePath: string;
 
 	constructor(
 		private readonly http: HttpClient,
-		private readonly repositoryId: string,
+		repositoryId: string,
 		private readonly transactionId: string,
-	) {}
-
-	private get basePath(): string {
-		return `/repositories/${this.repositoryId}/transactions/${this.transactionId}`;
+	) {
+		this.basePath = `/repositories/${repositoryId}/transactions/${transactionId}`;
 	}
 
 	/** Get the transaction ID */
@@ -27,7 +30,12 @@ export class TransactionClient {
 
 	/** Check if transaction is still active */
 	get isActive(): boolean {
-		return this.active;
+		return this.state === "ACTIVE";
+	}
+
+	/** Get the current transaction state */
+	get currentState(): TransactionState {
+		return this.state;
 	}
 
 	/** Execute a SPARQL query within the transaction */
@@ -56,7 +64,7 @@ export class TransactionClient {
 		});
 	}
 
-	/** Add RDF statements within the transaction */
+	/** Add RDF statements within the transaction (raw string) */
 	async add(
 		data: string,
 		options: {
@@ -77,7 +85,14 @@ export class TransactionClient {
 		});
 	}
 
-	/** Delete statements within the transaction */
+	/** Add typed Triple/Quad statements within the transaction */
+	async addStatements(statements: Iterable<Triple | Quad>): Promise<void> {
+		return this.add(serializeStatements(statements), {
+			contentType: ContentTypes.NQUADS,
+		});
+	}
+
+	/** Delete statements within the transaction (by pattern) */
 	async delete(options?: StatementOptions): Promise<void> {
 		this.ensureActive();
 		await this.http.post<void>(this.basePath, {
@@ -86,10 +101,19 @@ export class TransactionClient {
 				subj: options?.subj,
 				pred: options?.pred,
 				obj: options?.obj,
-				context: Array.isArray(options?.context)
-					? options?.context.join(",")
-					: options?.context,
+				context: normalizeContext(options?.context),
 			},
+		});
+	}
+
+	/** Delete typed Triple/Quad statements within the transaction */
+	async deleteStatements(statements: Iterable<Triple | Quad>): Promise<void> {
+		this.ensureActive();
+		const data = serializeStatements(statements);
+		await this.http.post<void>(this.basePath, {
+			body: data,
+			contentType: ContentTypes.NQUADS,
+			params: { action: "DELETE" },
 		});
 	}
 
@@ -104,9 +128,7 @@ export class TransactionClient {
 				subj: options?.subj,
 				pred: options?.pred,
 				obj: options?.obj,
-				context: Array.isArray(options?.context)
-					? options?.context.join(",")
-					: options?.context,
+				context: normalizeContext(options?.context),
 				infer: options?.infer,
 			},
 			accept: options?.accept ?? ContentTypes.TURTLE,
@@ -132,14 +154,14 @@ export class TransactionClient {
 		await this.http.put<void>(this.basePath, {
 			params: { action: "COMMIT" },
 		});
-		this.active = false;
+		this.state = "COMMITTED";
 	}
 
 	/** Rollback the transaction */
 	async rollback(): Promise<void> {
 		this.ensureActive();
 		await this.http.delete<void>(this.basePath);
-		this.active = false;
+		this.state = "ROLLED_BACK";
 	}
 
 	/** Ping to keep transaction alive */
@@ -151,8 +173,8 @@ export class TransactionClient {
 	}
 
 	private ensureActive(): void {
-		if (!this.active) {
-			throw new Error("Transaction is no longer active");
+		if (this.state !== "ACTIVE") {
+			throw new TransactionStateError("ACTIVE", this.state);
 		}
 	}
 }

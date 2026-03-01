@@ -1,3 +1,5 @@
+import { Rdf4jError } from "./errors.ts";
+
 /** RDF4J client configuration */
 export interface RDF4JConfig {
 	/** Base URL of the RDF4J server (e.g., "http://localhost:8080/rdf4j-server") */
@@ -40,7 +42,7 @@ export interface RDF4JErrorResponse {
 }
 
 /** Custom error class for RDF4J API errors */
-export class RDF4JError extends Error {
+export class RDF4JError extends Rdf4jError {
 	constructor(
 		message: string,
 		public readonly status: number,
@@ -48,7 +50,7 @@ export class RDF4JError extends Error {
 		public readonly response?: RDF4JErrorResponse,
 	) {
 		super(message);
-		this.name = "RDF4JError";
+		this.name = new.target.name;
 	}
 }
 
@@ -132,3 +134,6 @@ export type TransactionAction =
 	| "SIZE"
 	| "COMMIT"
 	| "ROLLBACK";
+
+/** Transaction state machine */
+export type TransactionState = "ACTIVE" | "COMMITTED" | "ROLLED_BACK";
